@@ -24,7 +24,7 @@ function marketLabel(market:string, ar:boolean){ const label=markets[market]??ma
 export function MarketApp() {
   const [language,setLanguage]=useState<Language>("ar"); const [theme,setTheme]=useState<Theme>("light"); const [view,setView]=useState<View>("market");
   const [prices,setPrices]=useState<PricesResponse>(mockPrices); const [history,setHistory]=useState<HistoryResponse>(mockHistory); const [source,setSource]=useState<Source>("mock");
-  const [refreshing,setRefreshing]=useState(false); const [online,setOnline]=useState(true); const [query,setQuery]=useState(""); const [category,setCategory]=useState("all");
+  const [refreshing,setRefreshing]=useState(false); const [online,setOnline]=useState(true); const [query,setQuery]=useState(""); const [category,setCategory]=useState("all"); const [lastUpdated,setLastUpdated]=useState<number|null>(null);
   const [favorites,setFavorites]=useState<string[]>([]); const [selected,setSelected]=useState("potato@Boufarik"); const [quantity,setQuantity]=useState(2); const [pull,setPull]=useState(0);
   const startY=useRef<number|null>(null); const t=copy[language]; const isAr=language==="ar";
 
