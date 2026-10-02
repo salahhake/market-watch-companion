@@ -13,7 +13,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - run: npm install
+      - run: npm install --legacy-peer-deps --no-package-lock
       - run: npm run build:static
       - run: |
           [ -d android ] || npx cap add android
