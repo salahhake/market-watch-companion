@@ -19,6 +19,7 @@ const markets: Record<string,string> = { Boufarik:"بوفاريك", "Boumerdès"
 
 function readStorage<T>(key:string, fallback:T):T { try { const v=localStorage.getItem(key); return v ? JSON.parse(v) as T : fallback; } catch { return fallback; } }
 function writeStorage(key:string, value:unknown) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage may be unavailable */ } }
+function marketLabel(market:string, ar:boolean){ const label=markets[market]??markets[market.toLowerCase()]; return ar?(label??market):label??market.charAt(0).toUpperCase()+market.slice(1); }
 
 export function MarketApp() {
   const [language,setLanguage]=useState<Language>("ar"); const [theme,setTheme]=useState<Theme>("light"); const [view,setView]=useState<View>("market");
