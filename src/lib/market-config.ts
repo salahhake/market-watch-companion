@@ -1,6 +1,6 @@
 export const MARKET_ENDPOINTS = {
-  prices: "https://raw.githubusercontent.com/USER/REPO/main/data/prices.json",
-  history: "https://raw.githubusercontent.com/USER/REPO/main/data/history.json",
+  prices: "https://raw.githubusercontent.com/salahhake/veggie-prices/main/data/prices.json",
+  history: "https://raw.githubusercontent.com/salahhake/veggie-prices/main/data/history.json",
 } as const;
 
 export const REFRESH_INTERVAL_MS = 5 * 60 * 1000;
