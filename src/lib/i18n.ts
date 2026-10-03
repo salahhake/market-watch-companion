@@ -56,9 +56,12 @@ export const translations = {
     units: { kg: "كجم", piece: "حبة" },
     categories: { vegetable: "خضروات", fruit: "فواكه" },
     products: {
-      potato: "بطاطا", tomato: "طماطم", onion: "بصل", carrot: "جزر",
-      zucchini: "كوسة", pepper: "فلفل", orange: "برتقال", apple: "تفاح",
       banana: "موز", date: "تمر", dates: "تمر", lemon: "ليمون", strawberry: "فراولة",
+      lettuce: "خس", eggplant: "باذنجان", cucumber: "خيار", garlic: "ثوم",
+      cabbage: "ملفوف", cauliflower: "قرنبيط", peas: "بازلاء", green_beans: "فاصولياء خضراء",
+      turnip: "لفت", pumpkin: "قرع", spinach: "سبانخ", parsley: "معدنوس",
+      coriander: "كزبرة", watermelon: "دلاع", melon: "شمام", grapes: "عنب",
+      pomegranate: "رمان", pear: "إجاص", peach: "خوخ", apricot: "مشمش", fig: "تين",
     },
     markets: {
       boufarik: "بوفاريك", boumerdès: "بومرداس", boumerdes: "بومرداس",
