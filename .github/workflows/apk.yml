@@ -1,6 +1,8 @@
 name: Build APK
 on:
   workflow_dispatch:
+permissions:
+  contents: write
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,7 +24,9 @@ jobs:
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
-      - uses: actions/upload-artifact@v4
+      - run: cp android/app/build/outputs/apk/debug/app-debug.apk souk-prices.apk
+      - uses: softprops/action-gh-release@v2
         with:
-          name: souk-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          tag_name: v${{ github.run_number }}
+          name: Souk Prices v${{ github.run_number }}
+          files: souk-prices.apk
