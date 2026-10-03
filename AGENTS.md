@@ -6,3 +6,4 @@
 - Keep remote market endpoints centralized in `src/lib/market-config.ts` so deployment data sources can be swapped without touching UI logic.
 - Keep offline fallback datasets deterministic and bundled with the app so first launch works without network access.
 - Static Capacitor build: `npm run build:static` uses vite.static.config.ts + static/ entry with hash history -> dist/; keeps SSR build untouched.
+- Keep all English/Arabic UI copy and dynamic market labels centralized in `src/lib/i18n.ts` so SSR and static builds share one localization source.
