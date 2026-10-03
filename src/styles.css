@@ -49,6 +49,7 @@
 @layer base { * { border-color: var(--color-border); } html { font-family: var(--font-sans); } body { margin: 0; background: var(--color-background); color: var(--color-foreground); } button, input, select { font: inherit; } button { cursor: pointer; } }
 @utility icon-button { @apply grid size-11 shrink-0 place-items-center rounded-xl border border-border bg-card text-foreground transition hover:bg-secondary active:scale-95; }
 @utility icon-button-sm { @apply grid size-9 shrink-0 place-items-center rounded-lg text-current transition hover:bg-secondary active:scale-95; }
+@utility language-switch { @apply flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-border bg-card px-3 text-xs font-extrabold text-primary transition hover:bg-secondary active:scale-95; }
 @utility filter-button { @apply shrink-0 rounded-full border border-border bg-card px-4 py-2 text-xs font-bold text-muted-foreground transition hover:border-primary; }
 @utility filter-active { @apply shrink-0 rounded-full border border-primary bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-blue transition; }
 @utility nav-button { @apply flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-[11px] font-semibold text-muted-foreground transition; }
