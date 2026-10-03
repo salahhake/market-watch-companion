@@ -122,9 +122,12 @@ export const translations = {
     units: { kg: "kg", piece: "piece" },
     categories: { vegetable: "Vegetables", fruit: "Fruits" },
     products: {
-      potato: "Potato", tomato: "Tomato", onion: "Onion", carrot: "Carrot",
-      zucchini: "Zucchini", pepper: "Pepper", orange: "Orange", apple: "Apple",
       banana: "Banana", date: "Dates", dates: "Dates", lemon: "Lemon", strawberry: "Strawberry",
+      lettuce: "Lettuce", eggplant: "Eggplant", cucumber: "Cucumber", garlic: "Garlic",
+      cabbage: "Cabbage", cauliflower: "Cauliflower", peas: "Peas", green_beans: "Green beans",
+      turnip: "Turnip", pumpkin: "Pumpkin", spinach: "Spinach", parsley: "Parsley",
+      coriander: "Coriander", watermelon: "Watermelon", melon: "Melon", grapes: "Grapes",
+      pomegranate: "Pomegranate", pear: "Pear", peach: "Peach", apricot: "Apricot", fig: "Fig",
     },
     markets: {
       boufarik: "Boufarik", boumerdès: "Boumerdès", boumerdes: "Boumerdès",
