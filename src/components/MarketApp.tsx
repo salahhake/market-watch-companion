@@ -32,7 +32,13 @@ export function MarketApp() {
   const dateLabel=new Intl.DateTimeFormat(isAr?"ar-DZ":"en-DZ",{hour:"2-digit",minute:"2-digit",day:"numeric",month:"short"}).format(new Date(prices.generated_at));
   const gesture={onTouchStart:(e:React.TouchEvent)=>{if(window.scrollY===0)startY.current=e.touches[0]?.clientY??null},onTouchMove:(e:React.TouchEvent)=>{if(startY.current!==null)setPull(Math.min(84,Math.max(0,(e.touches[0]?.clientY??0)-startY.current)))},onTouchEnd:()=>{if(pull>62)void refresh();setPull(0);startY.current=null}};
 
-  return <div {...gesture} className="min-h-screen bg-background text-foreground transition-colors duration-300">
+  const [brand,setBrand]=useState(true);
+  const [intro,setIntro]=useState<boolean|null>(null);
+  useEffect(()=>{try{setIntro(localStorage.getItem("souk_intro")!=="1")}catch{setIntro(false)}},[]);
+  if(brand) return <BrandIntro onDone={()=>setBrand(false)}/>;
+  if(intro===null) return <div className="min-h-screen bg-background"/>;
+  if(intro) return <Intro language={language} setLanguage={setLanguage} onDone={()=>{try{localStorage.setItem("souk_intro","1")}catch{}setIntro(false)}}/>;
+  return <div {...gesture} className="min-h-screen bg-background text-foreground transition-colors duration-300"><BrandMark/>
     <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center transition-transform" style={{transform:`translateY(${Math.max(-52,pull-52)}px)`}}><div className="mt-2 flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-lg"><RefreshCw size={14} className={pull>62?"animate-spin":""}/>{t.pull}</div></div>
     <div className="lg:ps-28"><header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-xl"><div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4"><div className="flex min-w-0 items-center gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-blue"><ShoppingBasket size={22}/></span><div className="min-w-0"><h1 className="font-display text-xl font-extrabold">{t.app}</h1><p className="truncate text-xs text-muted-foreground">{t.subtitle}</p></div></div><div className="flex shrink-0 items-center gap-2"><button type="button" aria-label={t.switchLanguage} title={t.switchLanguage} onClick={()=>setLanguage(x=>x==="ar"?"en":"ar")} className="language-switch"><Languages size={16}/><span>{isAr?"EN":"AR"}</span></button><button type="button" aria-label={t.theme} onClick={()=>setTheme(x=>x==="light"?"dark":"light")} className="icon-button">{theme==="light"?<Moon size={19}/>:<Sun size={19}/>}</button></div></div></header>
     <main className="mx-auto max-w-6xl px-4 pb-28 pt-5 md:px-6 lg:pb-10">
@@ -88,3 +94,48 @@ function Calc({entries,language,money}:{entries:Array<[string,PriceItem]>;langua
         <div className="rounded-xl bg-primary p-5 text-primary-foreground"><p className="text-sm opacity-80">{L.can}</p><p className="mt-2 font-display text-4xl font-extrabold"><bdi>{num(price(bKey)>0?budget/price(bKey):0)}</bdi> {unit(bKey)}</p></div>
       </>}
     </div></section>}
+
+function Intro({language,setLanguage,onDone}:{language:Language;setLanguage:(l:Language)=>void;onDone:()=>void}){
+  const isAr=language==="ar";
+  const [i,setI]=useState(0);
+  const S=isAr?[
+    {icon:<ShoppingBasket size={56}/>,title:"مرحباً بك في سوقي",text:"أسعار الخضر والفواكه في سوق الجملة، محدّثة وبشكل واضح مثل شاشات الأسهم."},
+    {icon:<TrendingUp size={56}/>,title:"تابع الأسعار",text:"شاهد الارتفاع والانخفاض والرسم البياني لكل منتج، وأضف المفضّلة بنقرة واحدة."},
+    {icon:<Calculator size={56}/>,title:"احسب مشترياتك",text:"احسب سلة مشترياتك أو اعرف كم كيلوغراماً تشتري بميزانيتك."}
+  ]:[
+    {icon:<ShoppingBasket size={56}/>,title:"Welcome to Souk",text:"Wholesale fruit and vegetable prices, clear and up to date like a stock ticker."},
+    {icon:<TrendingUp size={56}/>,title:"Track prices",text:"See rises, falls and a chart for every product, and save favorites with one tap."},
+    {icon:<Calculator size={56}/>,title:"Calculate your shopping",text:"Total your basket or see how many kilos your budget can buy."}
+  ];
+  const L=isAr?{next:"التالي",start:"ابدأ",skip:"تخطّي",lang:"English"}:{next:"Next",start:"Get started",skip:"Skip",lang:"العربية"};
+  const last=i===S.length-1;
+  return <div dir={isAr?"rtl":"ltr"} className="flex min-h-screen flex-col bg-background px-6 py-8 text-foreground">
+    <div className="flex items-center justify-between">
+      <button onClick={onDone} className="text-sm text-muted-foreground">{L.skip}</button>
+      <button onClick={()=>setLanguage(isAr?"en":"ar")} className="text-sm font-bold text-primary">{L.lang}</button>
+    </div>
+    <div className="flex flex-1 flex-col items-center justify-center text-center">
+      <span className="grid size-28 place-items-center rounded-3xl bg-primary text-primary-foreground shadow-card">{S[i].icon}</span>
+      <h1 className="mt-8 font-display text-3xl font-extrabold">{S[i].title}</h1>
+      <p className="mx-auto mt-3 max-w-xs text-base leading-7 text-muted-foreground">{S[i].text}</p>
+    </div>
+    <div className="mb-6 flex justify-center gap-2">{S.map((_,x)=><span key={x} className={`h-2 rounded-full transition-all ${x===i?"w-6 bg-primary":"w-2 bg-muted"}`}/>)}</div>
+    <button onClick={()=>last?onDone():setI(i+1)} className="w-full rounded-2xl bg-primary py-4 font-display text-lg font-bold text-primary-foreground">{last?L.start:L.next}</button>
+  </div>}
+
+function BrandLetters({className}:{className?:string}){
+  return <svg viewBox="0 0 420 140" className={className} fill="none" stroke="currentColor" strokeWidth="16" strokeLinecap="round" strokeLinejoin="round" aria-label="MWO">
+    <path className="mwo-draw" style={{animationDelay:"0.1s"}} pathLength="1" d="M15 125 L15 15 L65 85 L115 15 L115 125"/>
+    <path className="mwo-draw" style={{animationDelay:"0.5s"}} pathLength="1" d="M155 15 L185 125 L210 50 L235 125 L265 15"/>
+    <ellipse className="mwo-draw" style={{animationDelay:"0.9s"}} pathLength="1" cx="350" cy="70" rx="48" ry="55"/>
+  </svg>}
+function BrandIntro({onDone}:{onDone:()=>void}){
+  useEffect(()=>{const t=setTimeout(onDone,2800);return()=>clearTimeout(t)},[onDone]);
+  return <div onClick={onDone} className="fixed inset-0 z-50 flex flex-col items-center justify-center text-white" style={{background:"linear-gradient(180deg,#3b82d6 0%,#1e4fa0 100%)"}}>
+    <style>{`.mwo-draw{stroke-dasharray:1;stroke-dashoffset:1;animation:mwo-draw 1s ease forwards}@keyframes mwo-draw{to{stroke-dashoffset:0}}@keyframes mwo-fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}.mwo-line{opacity:0;animation:mwo-fade .8s ease 1.7s forwards}`}</style>
+    <BrandLetters className="w-64"/>
+    <div className="mwo-line mt-6 h-1 w-40 rounded-full bg-blue-200/70"/>
+    <p className="mwo-line mt-4 text-sm tracking-[0.3em] opacity-80">TEAM</p>
+  </div>}
+function BrandMark(){
+  return <div aria-hidden="true" className="pointer-events-none fixed bottom-24 end-3 z-40 select-none text-primary opacity-25"><BrandLetters className="w-12"/></div>}
