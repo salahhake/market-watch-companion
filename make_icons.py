@@ -1,7 +1,7 @@
 """يولّد أيقونات وأشرطة بداية تطبيق سوقي في مجلد assets/ - يعمل داخل GitHub Actions"""
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageDraw
 
 OUT = Path("assets"); OUT.mkdir(exist_ok=True)
 MASTER = Path("src/assets/icon-master.png")     # الأيقونة الكاملة بخلفية متدرجة
