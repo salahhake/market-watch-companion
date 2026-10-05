@@ -34,7 +34,7 @@ const items: Array<[string, Category, number, string, number]> = [
   ["strawberry", "fruit", 360, "Tipaza", 15],
 ];
 
-const today = new Date("2026-10-01T05:00:00Z");
+const today = new Date();
 const toDate = (d: Date) => d.toISOString().slice(0, 10);
 
 export const mockPrices: PricesResponse = {
