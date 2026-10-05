@@ -136,9 +136,9 @@ function Intro({language,setLanguage,onDone}:{language:Language;setLanguage:(l:L
       <button onClick={()=>setLanguage(isAr?"en":"ar")} className="text-sm font-bold text-primary">{L.lang}</button>
     </div>
     <div className="flex flex-1 flex-col items-center justify-center text-center">
-      <span className="grid size-28 place-items-center rounded-3xl bg-primary text-primary-foreground shadow-card">{S[i].icon}</span>
-      <h1 className="mt-8 font-display text-3xl font-extrabold">{S[i].title}</h1>
-      <p className="mx-auto mt-3 max-w-xs text-base leading-7 text-muted-foreground">{S[i].text}</p>
+      <span className="grid size-28 place-items-center rounded-3xl bg-primary text-primary-foreground shadow-card">{S[i]!.icon}</span>
+      <h1 className="mt-8 font-display text-3xl font-extrabold">{S[i]!.title}</h1>
+      <p className="mx-auto mt-3 max-w-xs text-base leading-7 text-muted-foreground">{S[i]!.text}</p>
     </div>
     <div className="mb-6 flex justify-center gap-2">{S.map((_,x)=><span key={x} className={`h-2 rounded-full transition-all ${x===i?"w-6 bg-primary":"w-2 bg-muted"}`}/>)}</div>
     <button onClick={()=>last?onDone():setI(i+1)} className="w-full rounded-2xl bg-primary py-4 font-display text-lg font-bold text-primary-foreground">{last?L.start:L.next}</button>
