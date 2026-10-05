@@ -16,7 +16,7 @@ function writeStorage(key:string, value:unknown) { try { localStorage.setItem(ke
 
 /* إعلانات AdMob: تعمل فقط داخل تطبيق الأندرويد، ولا تؤثر على الويب.
    TESTING=true => إعلانات تجريبية آمنة (استخدمها دائماً على هاتفك). غيّرها إلى false للنسخة التي تشاركها. */
-const ADMOB = { TESTING: true, BANNER_ID: "ca-app-pub-6729453537876541/2668704908", TEST_BANNER_ID: "ca-app-pub-3940256099942544/6300978111" };
+const ADMOB = { DEBUG: true, TESTING: true, BANNER_ID: "ca-app-pub-6729453537876541/2668704908", TEST_BANNER_ID: "ca-app-pub-3940256099942544/6300978111" };
 let adsStarted = false;
 async function showAds(){
   if(adsStarted || !Capacitor.isNativePlatform()) return;
@@ -24,9 +24,11 @@ async function showAds(){
   try {
     const AdMob = registerPlugin<any>("AdMob");
     await AdMob.initialize({ initializeForTesting: ADMOB.TESTING });
+    if(ADMOB.DEBUG) await AdMob.addListener("bannerAdFailedToLoad", (e:unknown)=>alert("Ad failed: "+JSON.stringify(e)));
+    if(ADMOB.DEBUG) await AdMob.addListener("bannerAdLoaded", ()=>alert("Ad loaded OK"));
     await AdMob.showBanner({ adId: ADMOB.TESTING ? ADMOB.TEST_BANNER_ID : ADMOB.BANNER_ID, adSize: "ADAPTIVE_BANNER", position: "BOTTOM_CENTER", margin: 76, isTesting: ADMOB.TESTING });
     document.body.style.paddingBottom = "64px";
-  } catch { adsStarted = false; }
+  } catch (e) { adsStarted = false; if(ADMOB.DEBUG) alert("AdMob error: "+(e instanceof Error ? e.message : JSON.stringify(e))); }
 }
 
 /* أسماء المنتجات الإضافية تأتي من names.json (عمودا name_ar و name_en في الشيت) بدون إعادة بناء التطبيق */
