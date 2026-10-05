@@ -10,9 +10,8 @@ TOP, BOTTOM = (59, 130, 214), (30, 79, 160)
 
 
 def gradient(size, top=TOP, bot=BOTTOM):
-    img = Image.new("RGB", (size, size)); d = ImageDraw = ImageDraw if False else None
-    from PIL import ImageDraw as _D
-    d = _D.Draw(img)
+    img = Image.new("RGB", (size, size))
+    d = ImageDraw.Draw(img)
     for y in range(size):
         t = y / (size - 1)
         d.line([(0, y), (size, y)], fill=tuple(int(top[i] + (bot[i] - top[i]) * t) for i in range(3)))
