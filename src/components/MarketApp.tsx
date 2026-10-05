@@ -13,7 +13,7 @@ type Source = "live" | "cache" | "mock";
 function readStorage<T>(key:string, fallback:T):T { try { const v=localStorage.getItem(key); return v ? JSON.parse(v) as T : fallback; } catch { return fallback; } }
 function writeStorage(key:string, value:unknown) { try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage may be unavailable */ } }
 
-/* أسماء المنتجات الإضافية تأتي من names.json (عمودا name_ar و name_en في الشيت) بدون إعادة بناء التطبيق */
+/* أسماء المنتجات الإضافية تأتي من names.json بدون إعادة بناء التطبيق */
 type ExtraNames = Record<string,{ar?:string;en?:string}>;
 let EXTRA_NAMES:ExtraNames = {};
 const NAMES_CACHE = "souk_names_v1";
@@ -32,6 +32,7 @@ async function loadNames(bust:string):Promise<boolean>{
     return false;
   }
 }
+
 export function MarketApp() {
   const [language,setLanguage]=useState<Language>(DEFAULT_LANGUAGE); const [theme,setTheme]=useState<Theme>("light"); const [view,setView]=useState<View>("market");
   const [prices,setPrices]=useState<PricesResponse>(mockPrices); const [history,setHistory]=useState<HistoryResponse>(mockHistory); const [source,setSource]=useState<Source>("mock");
@@ -59,26 +60,94 @@ export function MarketApp() {
   if(brand) return <BrandIntro onDone={()=>setBrand(false)}/>;
   if(intro===null) return <div className="min-h-screen bg-background"/>;
   if(intro) return <Intro language={language} setLanguage={setLanguage} onDone={()=>{try{localStorage.setItem("souk_intro","1")}catch{}setIntro(false)}}/>;
-  return <div {...gesture} className="min-h-screen bg-background text-foreground transition-colors duration-300"><BrandMark/>
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center transition-transform" style={{transform:`translateY(${Math.max(-52,pull-52)}px)`}}><div className="mt-2 flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-lg"><RefreshCw size={14} className={pull>62?"animate-spin":""}/>{t.pull}</div></div>
-    <div className="lg:ps-28"><header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-xl"><div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4"><div className="flex min-w-0 items-center gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-blue"><ShoppingBasket size={22}/></span><div className="min-w-0"><h1 className="font-display text-xl font-extrabold">{t.app}</h1><p className="truncate text-xs text-muted-foreground">{t.subtitle}</p></div></div><div className="flex shrink-0 items-center gap-2"><button type="button" aria-label={t.switchLanguage} title={t.switchLanguage} onClick={()=>setLanguage(x=>x==="ar"?"en":"ar")} className="language-switch"><Languages size={16}/><span>{isAr?"EN":"AR"}</span></button><button type="button" aria-label={t.theme} onClick={()=>setTheme(x=>x==="light"?"dark":"light")} className="icon-button">{theme==="light"?<Moon size={19}/>:<Sun size={19}/>}</button></div></div></header>
-    <main className="mx-auto max-w-6xl px-4 pb-28 pt-5 md:px-6 lg:pb-10">
-      <div className={`mb-5 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${source==="live"&&online?"border-info/25 bg-info-soft text-info":"border-warning/25 bg-warning-soft text-warning"}`}><div className="flex items-center gap-2">{source==="live"&&online?<Wifi size={17}/>:<CloudOff size={17}/>}<span>{source==="live"&&online?t.live:source==="cache"?t.offline:t.mock}</span>{lastUpdated!==null&&<span className="text-xs opacity-75">· {t.updated} {new Intl.DateTimeFormat(isAr?"ar-DZ":"en-DZ",{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(lastUpdated))}</span>}</div><button aria-label={t.retry} onClick={()=>void refresh()} className="icon-button-sm"><RefreshCw size={15} className={refreshing?"animate-spin":""}/></button></div>
-      {(view==="market"||view==="watchlist")&&<><div className="mb-5 flex items-end justify-between"><div><p className="text-sm text-muted-foreground">{t.updated}</p><p className="mt-1 font-display text-2xl font-bold">{dateLabel}</p></div><div className="rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-accent-foreground">{translateTemplate(t.itemCount,{count:entries.length})}</div></div>
-      <div className="relative mb-4"><Search className="absolute start-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={19}/><input ref={searchRef} aria-label={t.search} value={query} onChange={e=>setQuery(e.target.value)} placeholder={`${t.search}  ( / )`} className="h-12 w-full rounded-xl border border-border bg-card ps-12 pe-4 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-ring/15"/></div>
-      <div className="mb-5 flex gap-2 overflow-x-auto pb-1">{([['all',t.all],['vegetable',t.vegetables],['fruit',t.fruits]] as Array<[string,string]>).map(([v,l])=><button key={v} onClick={()=>setCategory(v)} className={category===v?"filter-active":"filter-button"}>{l}</button>)}</div>
-      {refreshing?<Skeletons/>:visible.length?<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{visible.map(([key,item])=><PriceCard key={key} itemKey={key} item={item} language={language} favorite={favorites.includes(key)} onFavorite={()=>toggleFavorite(key)} onSelect={()=>setSelected(key)} money={money} history={history[key]??[]}/>)}</div>:<Empty title={view==="watchlist"?t.watchEmpty:t.empty} detail={view==="watchlist"?t.watchSub:t.emptySub}/>}</>}
-      {view==="calculator"&&<Calc entries={entries} language={language} money={money}/>}
-      {view==="settings"&&<section className="mx-auto max-w-2xl"><SectionTitle icon={<Settings/>} title={t.settings}/><div className="space-y-4"><SettingCard icon={<Languages/>} title={t.language}><div className="segmented"><button onClick={()=>setLanguage("ar")} className={language==="ar"?"selected":""}>{t.arabic}</button><button onClick={()=>setLanguage("en")} className={language==="en"?"selected":""}>{t.english}</button></div></SettingCard><SettingCard icon={theme==="light"?<Sun/>:<Moon/>} title={t.theme}><div className="segmented"><button onClick={()=>setTheme("light")} className={theme==="light"?"selected":""}>{t.light}</button><button onClick={()=>setTheme("dark")} className={theme==="dark"?"selected":""}>{t.dark}</button></div></SettingCard><SettingCard icon={<RefreshCw/>} title={t.data}><p className="text-sm text-muted-foreground">{t.auto}</p><p className="mt-1 text-xs text-muted-foreground/70">{t.source}: {t.liveSource}</p></SettingCard><SettingCard icon={<Keyboard/>} title={t.shortcuts}><ul className="grid gap-2 text-sm sm:grid-cols-2">{([["1–4",t.scNav],["/  ·  Ctrl+K",t.scSearch],["R",t.scRefresh],["T",t.scTheme],["L",t.scLang],["Esc",t.scEsc]] as const).map(([k,l])=><li key={k} className="flex items-center justify-between gap-3 rounded-lg bg-muted px-3 py-2"><span className="text-muted-foreground">{l}</span><kbd dir="ltr" className="rounded-md border border-border bg-card px-2 py-0.5 font-mono text-xs font-bold">{k}</kbd></li>)}</ul></SettingCard></div></section>}
-      
-      {/* الفوتر داخل الهيكل الرئيسي لضمان عدم اختفائه تحت الشريط السفلي */}
-      <footer className="mt-8 border-t border-border/70 pt-5 text-center">
-        <p className="text-xs text-muted-foreground">{translateTemplate(t.copyright,{year:new Date().getFullYear()})}</p>
-      </footer>
-    </main>
+
+  return (
+    <div {...gesture} className="min-h-screen bg-background text-foreground transition-colors duration-300">
+      <BrandMark/>
+      <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center transition-transform" style={{transform:`translateY(${Math.max(-52,pull-52)}px)`}}>
+        <div className="mt-2 flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground shadow-lg">
+          <RefreshCw size={14} className={pull>62?"animate-spin":""}/>{t.pull}
+        </div>
+      </div>
+      <div className="lg:ps-28">
+        <header className="sticky top-0 z-30 border-b border-border/70 bg-background/90 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-primary text-primary-foreground shadow-blue">
+                <ShoppingBasket size={22}/>
+              </span>
+              <div className="min-w-0">
+                <h1 className="font-display text-xl font-extrabold">{t.app}</h1>
+                <p className="truncate text-xs text-muted-foreground">{t.subtitle}</p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <button type="button" aria-label={t.switchLanguage} title={t.switchLanguage} onClick={()=>setLanguage(x=>x==="ar"?"en":"ar")} className="language-switch">
+                <Languages size={16}/><span>{isAr?"EN":"AR"}</span>
+              </button>
+              <button type="button" aria-label={t.theme} onClick={()=>setTheme(x=>x==="light"?"dark":"light")} className="icon-button">
+                {theme==="light"?<Moon size={19}/>:<Sun size={19}/>}
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* تمت زيادة pb-36 لإعطاء مساحة كافية قبل شريط التنقل السفلي */}
+        <main className="mx-auto max-w-6xl px-4 pb-36 pt-5 md:px-6 lg:pb-12">
+          <div className={`mb-5 flex items-center justify-between gap-3 rounded-xl border px-4 py-3 text-sm ${source==="live"&&online?"border-info/25 bg-info-soft text-info":"border-warning/25 bg-warning-soft text-warning"}`}>
+            <div className="flex items-center gap-2">
+              {source==="live"&&online?<Wifi size={17}/>:<CloudOff size={17}/>}
+              <span>{source==="live"&&online?t.live:source==="cache"?t.offline:t.mock}</span>
+              {lastUpdated!==null&&<span className="text-xs opacity-75">· {t.updated} {new Intl.DateTimeFormat(isAr?"ar-DZ":"en-DZ",{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(lastUpdated))}</span>}
+            </div>
+            <button aria-label={t.retry} onClick={()=>void refresh()} className="icon-button-sm">
+              <RefreshCw size={15} className={refreshing?"animate-spin":""}/>
+            </button>
+          </div>
+
+          {(view==="market"||view==="watchlist")&&<>
+            <div className="mb-5 flex items-end justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground">{t.updated}</p>
+                <p className="mt-1 font-display text-2xl font-bold">{dateLabel}</p>
+              </div>
+              <div className="rounded-full bg-accent px-3 py-1.5 text-xs font-bold text-accent-foreground">
+                {translateTemplate(t.itemCount,{count:entries.length})}
+              </div>
+            </div>
+            <div className="relative mb-4">
+              <Search className="absolute start-4 top-1/2 -translate-y-1/2 text-muted-foreground" size={19}/>
+              <input ref={searchRef} aria-label={t.search} value={query} onChange={e=>setQuery(e.target.value)} placeholder={`${t.search}  ( / )`} className="h-12 w-full rounded-xl border border-border bg-card ps-12 pe-4 text-sm outline-none transition focus:border-primary focus:ring-4 focus:ring-ring/15"/>
+            </div>
+            <div className="mb-5 flex gap-2 overflow-x-auto pb-1">
+              {([['all',t.all],['vegetable',t.vegetables],['fruit',t.fruits]] as Array<[string,string]>).map(([v,l])=><button key={v} onClick={()=>setCategory(v)} className={category===v?"filter-active":"filter-button"}>{l}</button>)}
+            </div>
+            {refreshing?<Skeletons/>:visible.length?<div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{visible.map(([key,item])=><PriceCard key={key} itemKey={key} item={item} language={language} favorite={favorites.includes(key)} onFavorite={()=>toggleFavorite(key)} onSelect={()=>setSelected(key)} money={money} history={history[key]??[]}/>)}</div>:<Empty title={view==="watchlist"?t.watchEmpty:t.empty} detail={view==="watchlist"?t.watchSub:t.emptySub}/>}
+          </>}
+
+          {view==="calculator"&&<Calc entries={entries} language={language} money={money}/>}
+          
+          {view==="settings"&&<section className="mx-auto max-w-2xl"><SectionTitle icon={<Settings/>} title={t.settings}/><div className="space-y-4"><SettingCard icon={<Languages/>} title={t.language}><div className="segmented"><button onClick={()=>setLanguage("ar")} className={language==="ar"?"selected":""}>{t.arabic}</button><button onClick={()=>setLanguage("en")} className={language==="en"?"selected":""}>{t.english}</button></div></SettingCard><SettingCard icon={theme==="light"?<Sun/>:<Moon/>} title={t.theme}><div className="segmented"><button onClick={()=>setTheme("light")} className={theme==="light"?"selected":""}>{t.light}</button><button onClick={()=>setTheme("dark")} className={theme==="dark"?"selected":""}>{t.dark}</button></div></SettingCard><SettingCard icon={<RefreshCw/>} title={t.data}><p className="text-sm text-muted-foreground">{t.auto}</p><p className="mt-1 text-xs text-muted-foreground/70">{t.source}: {t.liveSource}</p></SettingCard><SettingCard icon={<Keyboard/>} title={t.shortcuts}><ul className="grid gap-2 text-sm sm:grid-cols-2">{([["1–4",t.scNav],["/  ·  Ctrl+K",t.scSearch],["R",t.scRefresh],["T",t.scTheme],["L",t.scLang],["Esc",t.scEsc]] as const).map(([k,l])=><li key={k} className="flex items-center justify-between gap-3 rounded-lg bg-muted px-3 py-2"><span className="text-muted-foreground">{l}</span><kbd dir="ltr" className="rounded-md border border-border bg-card px-2 py-0.5 font-mono text-xs font-bold">{k}</kbd></li>)}</ul></SettingCard></div></section>}
+          
+          {/* الفوتر داخل المحتوى الرئيسي مع هامش سفلي متناسق */}
+          <footer className="mt-10 border-t border-border/70 pt-6 text-center">
+            <p className="text-xs text-muted-foreground">{translateTemplate(t.copyright,{year:new Date().getFullYear()})}</p>
+          </footer>
+        </main>
+      </div>
+
+      <nav aria-label={t.app} className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:inset-y-0 lg:end-auto lg:start-0 lg:w-24 lg:border-e lg:border-t-0 lg:pb-0">
+        <div className="mx-auto grid max-w-lg grid-cols-4 px-2 py-2 lg:mt-24 lg:max-w-none lg:grid-cols-1 lg:gap-2">
+          {([{id:"market",icon:ShoppingBasket,label:t.market},{id:"watchlist",icon:Heart,label:t.watchlist},{id:"calculator",icon:Calculator,label:t.calculator},{id:"settings",icon:Settings,label:t.settings}] as const).map((n,i)=>(
+            <button key={n.id} title={`${n.label} (${i+1})`} aria-current={view===n.id?"page":undefined} onClick={()=>setView(n.id)} className={view===n.id?"nav-active":"nav-button"}>
+              <n.icon size={21} fill={view===n.id&&n.id==="watchlist"?"currentColor":"none"}/>
+              <span>{n.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
-    <nav aria-label={t.app} className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl lg:inset-y-0 lg:end-auto lg:start-0 lg:w-24 lg:border-e lg:border-t-0 lg:pb-0"><div className="mx-auto grid max-w-lg grid-cols-4 px-2 py-2 lg:mt-24 lg:max-w-none lg:grid-cols-1 lg:gap-2">{([{id:"market",icon:ShoppingBasket,label:t.market},{id:"watchlist",icon:Heart,label:t.watchlist},{id:"calculator",icon:Calculator,label:t.calculator},{id:"settings",icon:Settings,label:t.settings}] as const).map((n,i)=><button key={n.id} title={`${n.label} (${i+1})`} aria-current={view===n.id?"page":undefined} onClick={()=>setView(n.id)} className={view===n.id?"nav-active":"nav-button"}><n.icon size={21} fill={view===n.id&&n.id==="watchlist"?"currentColor":"none"}/><span>{n.label}</span></button>)}</div></nav>
-  </div>
+  );
 }
 
 function PriceCard({item,itemKey,language,favorite,onFavorite,onSelect,money,history}:{itemKey:string;item:PriceItem;language:Language;favorite:boolean;onFavorite:()=>void;onSelect:()=>void;money:(n:number)=>string;history:Array<{date:string;price:number}>}){const t=translations[language], product=productName(item.product,language), up=item.change>0, down=item.change<0;return <article onClick={onSelect} className="group rounded-2xl border border-border bg-card p-4 shadow-card transition duration-200 hover:-translate-y-0.5 hover:shadow-card-hover"><div className="flex items-start gap-3"><span className="grid size-12 shrink-0 place-items-center rounded-xl bg-secondary text-primary" title={t.categories[item.category]}>{item.category==="fruit"?<Apple size={22}/>:<Leaf size={22}/>}</span><div className="min-w-0 flex-1"><div className="flex items-start justify-between gap-2"><div><h3 className="font-display text-base font-bold">{product}</h3><p className="mt-0.5 text-xs text-muted-foreground">{marketLabel(item.market,language)} · {t.categories[item.category]}</p></div><button aria-label={translateTemplate(favorite?t.favoriteRemove:t.favoriteAdd,{product})} onClick={e=>{e.stopPropagation();onFavorite()}} className="icon-button-sm"><Heart size={18} className={favorite?"fill-primary text-primary":""}/></button></div><div className="mt-4 flex items-end justify-between"><div><p className="font-display text-2xl font-extrabold" dir="ltr">{money(item.price)}</p><p className="text-[11px] text-muted-foreground">{translateTemplate(t.perUnit,{unit:unitLabel(item.unit,language)})}</p></div><div className={`flex items-center gap-1 text-xs font-bold ${up?"text-rise":down?"text-fall":"text-muted-foreground"}`}>{up?<TrendingUp size={15}/>:down?<TrendingDown size={15}/>:null}<span dir="ltr">{(()=>{const prev=item.price-item.change;const p=prev>0?Math.round(item.change/prev*1000)/10:0;return `${p>0?"+":""}${p}%`})()}</span></div></div></div></div><div className="mt-3 h-10"><ResponsiveContainer width="100%" height="100%"><AreaChart data={history.slice(-30)}><defs><linearGradient id={`g-${itemKey.replace(/[^a-zA-Z0-9]/g,"-")}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="var(--primary)" stopOpacity={0.25}/><stop offset="1" stopColor="var(--primary)" stopOpacity={0}/></linearGradient></defs><YAxis hide domain={["dataMin - 5","dataMax + 5"]}/><Tooltip content={()=>null}/><Area type="monotone" dataKey="price" stroke="var(--primary)" strokeWidth={2} fill={`url(#g-${itemKey.replace(/[^a-zA-Z0-9]/g,"-")})`} isAnimationActive={false}/></AreaChart></ResponsiveContainer></div></article>}
@@ -156,6 +225,7 @@ function BrandLetters({className,delay=0}:{className?:string;delay?:number}){
     <path className="mwo-draw" style={{animationDelay:`${delay+0.55}s`}} pathLength="1" d="M155 15 L185 125 L210 50 L235 125 L265 15"/>
     <path className="mwo-draw" style={{animationDelay:`${delay+1}s`}} pathLength="1" d="M383.9 31.1 A48 55 0 1 0 383.9 108.9"/>
   </svg>}
+
 function BrandIntro({onDone}:{onDone:()=>void}){
   useEffect(()=>{const t=setTimeout(onDone,6000);return()=>clearTimeout(t)},[onDone]);
   const name="salah".split("");
@@ -198,5 +268,6 @@ function BrandIntro({onDone}:{onDone:()=>void}){
       <p className="mwo-fade mt-4 text-xs font-light tracking-[0.45em] text-blue-100" style={{animationDelay:"5s"}}>TEAM</p>
     </div>
   </div>}
+
 function BrandMark(){
   return <div aria-hidden="true" className="pointer-events-none fixed bottom-24 end-3 z-40 select-none text-primary opacity-25"><BrandLetters className="w-12"/></div>}
