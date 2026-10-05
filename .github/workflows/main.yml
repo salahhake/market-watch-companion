@@ -19,9 +19,12 @@ jobs:
         with:
           python-version: "3.12"
       - run: npm install --legacy-peer-deps --no-package-lock
+      - run: npm install @capacitor-community/admob --legacy-peer-deps --no-package-lock
       - run: npm run build:static
       - run: |
           [ -d android ] || npx cap add android
+          M=android/app/src/main/AndroidManifest.xml
+          grep -q "gms.ads.APPLICATION_ID" $M || sed -i 's#</application>#        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-6729453537876541~8247325489"/>\n    </application>#' $M
           pip install pillow
           python make_icons.py
           npx @capacitor/assets generate --android
